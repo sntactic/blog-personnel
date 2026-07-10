@@ -1,6 +1,5 @@
 package sn.niir.blog_backend.services;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,6 +8,7 @@ import org.springframework.stereotype.Service;
 import sn.niir.blog_backend.dto.AuthResponse;
 import sn.niir.blog_backend.dto.LoginRequest;
 import sn.niir.blog_backend.dto.RegisterRequest;
+import sn.niir.blog_backend.exceptions.ResourceNotFoundException;
 import sn.niir.blog_backend.models.Role;
 import sn.niir.blog_backend.models.User;
 import sn.niir.blog_backend.repositories.UserRepository;
@@ -50,7 +50,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
 
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
         return new AuthResponse(token, user.getEmail(), user.getRole().name());
