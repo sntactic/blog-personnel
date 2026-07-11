@@ -2,12 +2,15 @@ package sn.niir.blog_backend.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import sn.niir.blog_backend.dto.ArticleRequest;
 import sn.niir.blog_backend.dto.ArticleResponse;
 import sn.niir.blog_backend.services.ArticleService;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -17,12 +20,15 @@ public class ArticleController {
 
     private final ArticleService articleService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ArticleResponse> create(
-            @Valid @RequestBody ArticleRequest request,
+            @Valid @RequestPart("article") ArticleRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @RequestAttribute("userId") String userId
     ) {
-        return ResponseEntity.ok(articleService.createArticle(request, userId));
+        return ResponseEntity.ok(
+                articleService.createArticle(request, images != null ? images : Collections.emptyList(), userId)
+        );
     }
 
     @GetMapping("/{id}")
@@ -45,14 +51,17 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getArticlesByTag(tag));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ArticleResponse> update(
             @PathVariable String id,
-            @Valid @RequestBody ArticleRequest request,
+            @Valid @RequestPart("article") ArticleRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> newImages,
             @RequestAttribute("userId") String userId,
             @RequestAttribute("role") String role
     ) {
-        return ResponseEntity.ok(articleService.updateArticle(id, request, userId, role));
+        return ResponseEntity.ok(
+                articleService.updateArticle(id, request, newImages != null ? newImages : Collections.emptyList(), userId, role)
+        );
     }
 
     @DeleteMapping("/{id}")

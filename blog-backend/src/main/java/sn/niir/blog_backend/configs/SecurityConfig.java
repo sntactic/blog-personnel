@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         // Statistiques réservées à l'admin
                         .requestMatchers("/api/stats/**").hasRole("ADMIN")
+                        // Upload d'images réservé à AUTHOR et ADMIN
+                        .requestMatchers("/api/uploads/**").hasAnyRole("AUTHOR", "ADMIN")
                         // Écriture d'articles réservée à AUTHOR et ADMIN
                         .requestMatchers("POST", "/api/articles/**").hasAnyRole("AUTHOR", "ADMIN")
                         .requestMatchers("PUT", "/api/articles/**").hasAnyRole("AUTHOR", "ADMIN")

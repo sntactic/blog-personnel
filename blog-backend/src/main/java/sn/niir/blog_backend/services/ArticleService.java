@@ -2,6 +2,7 @@ package sn.niir.blog_backend.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import sn.niir.blog_backend.dto.ArticleRequest;
 import sn.niir.blog_backend.dto.ArticleResponse;
 import sn.niir.blog_backend.exceptions.ResourceNotFoundException;
@@ -10,6 +11,7 @@ import sn.niir.blog_backend.models.Article;
 import sn.niir.blog_backend.repositories.ArticleRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -17,14 +19,17 @@ import java.util.List;
 public class ArticleService {
 
     private final ArticleRepository articleRepository;
+    private final MinioService minioService;
 
-    public ArticleResponse createArticle(ArticleRequest request, String authorId) {
+    public ArticleResponse createArticle(ArticleRequest request, List<MultipartFile> images, String authorId) {
+        List<String> imageUrls = uploadImages(images);
+
         Article article = Article.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .authorId(authorId)
                 .tags(request.getTags())
-                .images(request.getImages())
+                .images(imageUrls)
                 .status(request.getStatus() != null ? request.getStatus() : Article.ArticleStatus.DRAFT)
                 .views(0)
                 .createdAt(LocalDateTime.now())
@@ -57,14 +62,27 @@ public class ArticleService {
                 .toList();
     }
 
-    public ArticleResponse updateArticle(String id, ArticleRequest request, String userId, String role) {
+    public ArticleResponse updateArticle(String id, ArticleRequest request, List<MultipartFile> newImages, String userId, String role) {
         Article article = findArticleOrThrow(id);
         checkOwnership(article, userId, role);
+
+        List<String> currentImages = article.getImages() != null ? article.getImages() : List.of();
+        List<String> imagesToKeep = request.getExistingImages() != null ? request.getExistingImages() : List.of();
+
+        // Supprime de MinIO toute image présente en base mais absente de la liste à conserver
+        currentImages.stream()
+                .filter(imageUrl -> !imagesToKeep.contains(imageUrl))
+                .forEach(minioService::deleteImage);
+
+        // Upload les nouveaux fichiers et construit la liste finale : conservées + nouvelles
+        List<String> newImageUrls = uploadImages(newImages);
+        List<String> finalImages = new ArrayList<>(imagesToKeep);
+        finalImages.addAll(newImageUrls);
 
         article.setTitle(request.getTitle());
         article.setContent(request.getContent());
         article.setTags(request.getTags());
-        article.setImages(request.getImages());
+        article.setImages(finalImages);
         if (request.getStatus() != null) {
             article.setStatus(request.getStatus());
         }
@@ -76,7 +94,22 @@ public class ArticleService {
     public void deleteArticle(String id, String userId, String role) {
         Article article = findArticleOrThrow(id);
         checkOwnership(article, userId, role);
+
+        if (article.getImages() != null) {
+            article.getImages().forEach(minioService::deleteImage);
+        }
+
         articleRepository.delete(article);
+    }
+
+    private List<String> uploadImages(List<MultipartFile> images) {
+        if (images == null || images.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return images.stream()
+                .filter(file -> !file.isEmpty())
+                .map(minioService::uploadImage)
+                .toList();
     }
 
     private Article findArticleOrThrow(String id) {

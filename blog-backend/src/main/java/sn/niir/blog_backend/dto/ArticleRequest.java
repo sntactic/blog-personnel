@@ -21,7 +21,7 @@ public class ArticleRequest {
     @NotEmpty(message = "Au moins un tag est requis")
     private List<String> tags;
 
-    private List<String> images;
-
     private Article.ArticleStatus status; // DRAFT ou PUBLISHED
+
+    private List<String> existingImages;
 }
