@@ -5,6 +5,7 @@ export interface Article {
   title: string;
   content: string;
   authorId: string;
+  authorName: string;
   tags: string[];
   images: string[];
   status: ArticleStatus;

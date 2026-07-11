@@ -8,7 +8,9 @@ import sn.niir.blog_backend.dto.ArticleResponse;
 import sn.niir.blog_backend.exceptions.ResourceNotFoundException;
 import sn.niir.blog_backend.exceptions.UnauthorizedException;
 import sn.niir.blog_backend.models.Article;
+import sn.niir.blog_backend.models.User;
 import sn.niir.blog_backend.repositories.ArticleRepository;
+import sn.niir.blog_backend.repositories.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,15 +21,18 @@ import java.util.List;
 public class ArticleService {
 
     private final ArticleRepository articleRepository;
+    private final UserRepository userRepository;
     private final MinioService minioService;
 
     public ArticleResponse createArticle(ArticleRequest request, List<MultipartFile> images, String authorId) {
         List<String> imageUrls = uploadImages(images);
+        String authorName = resolveAuthorName(authorId);
 
         Article article = Article.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .authorId(authorId)
+                .authorName(authorName)
                 .tags(request.getTags())
                 .images(imageUrls)
                 .status(request.getStatus() != null ? request.getStatus() : Article.ArticleStatus.DRAFT)
@@ -62,7 +67,7 @@ public class ArticleService {
                 .toList();
     }
 
-    public ArticleResponse updateArticle(String id, ArticleRequest request, List<MultipartFile> newImages, String userId, String role) {
+    public ArticleResponse updateArticle(String id, ArticleRequest request, List<MultipartFile> images, String userId, String role) {
         Article article = findArticleOrThrow(id);
         checkOwnership(article, userId, role);
 
@@ -74,10 +79,10 @@ public class ArticleService {
                 .filter(imageUrl -> !imagesToKeep.contains(imageUrl))
                 .forEach(minioService::deleteImage);
 
-        // Upload les nouveaux fichiers et construit la liste finale : conservées + nouvelles
-        List<String> newImageUrls = uploadImages(newImages);
+        // Upload les fichiers reçus (toujours nouveaux par nature) et construit la liste finale
+        List<String> uploadedUrls = uploadImages(images);
         List<String> finalImages = new ArrayList<>(imagesToKeep);
-        finalImages.addAll(newImageUrls);
+        finalImages.addAll(uploadedUrls);
 
         article.setTitle(request.getTitle());
         article.setContent(request.getContent());
@@ -110,6 +115,12 @@ public class ArticleService {
                 .filter(file -> !file.isEmpty())
                 .map(minioService::uploadImage)
                 .toList();
+    }
+
+    private String resolveAuthorName(String authorId) {
+        return userRepository.findById(authorId)
+                .map(User::getFullName)
+                .orElse("Auteur inconnu");
     }
 
     private Article findArticleOrThrow(String id) {

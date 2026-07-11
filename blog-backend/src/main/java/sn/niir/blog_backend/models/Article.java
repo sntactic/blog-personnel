@@ -28,14 +28,16 @@ public class Article {
     private String content;
 
     @Indexed
-    private String authorId;
+    private String authorId; // référence vers User, pour l'autorisation
+
+    private String authorName; // copie dénormalisée du nom de l'auteur, pour l'affichage
 
     @Indexed
     private List<String> tags;
 
-    private List<String> images;
+    private List<String> images; // URLs MinIO
 
-    private ArticleStatus status;
+    private ArticleStatus status; // DRAFT, PUBLISHED
 
     private int views;
 

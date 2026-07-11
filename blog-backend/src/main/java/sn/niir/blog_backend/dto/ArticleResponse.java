@@ -16,6 +16,7 @@ public class ArticleResponse {
     private String title;
     private String content;
     private String authorId;
+    private String authorName;
     private List<String> tags;
     private List<String> images;
     private Article.ArticleStatus status;
@@ -29,6 +30,7 @@ public class ArticleResponse {
                 .title(article.getTitle())
                 .content(article.getContent())
                 .authorId(article.getAuthorId())
+                .authorName(article.getAuthorName())
                 .tags(article.getTags())
                 .images(article.getImages())
                 .status(article.getStatus())
