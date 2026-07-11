@@ -2,6 +2,7 @@ package sn.niir.blog_backend.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -38,8 +39,10 @@ public class SecurityConfig {
                         // Authentification ouverte à tous
                         .requestMatchers("/api/auth/**").permitAll()
                         // Lecture publique des articles et commentaires
-                        .requestMatchers("GET", "/api/articles/**").permitAll()
-                        .requestMatchers("GET", "/api/comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/articles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                        // Ajout de commentaire ouvert à tout visiteur, même non connecté
+                        .requestMatchers(HttpMethod.POST, "/api/comments/**").hasAnyRole("AUTHOR", "ADMIN", "READER")
                         // Gestion des utilisateurs réservée à l'admin
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         // Statistiques réservées à l'admin
@@ -47,11 +50,11 @@ public class SecurityConfig {
                         // Upload d'images réservé à AUTHOR et ADMIN
                         .requestMatchers("/api/uploads/**").hasAnyRole("AUTHOR", "ADMIN")
                         // Modération des commentaires réservée à l'admin
-                        .requestMatchers("DELETE", "/api/comments/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/**").hasRole("ADMIN")
                         // Écriture d'articles réservée à AUTHOR et ADMIN
-                        .requestMatchers("POST", "/api/articles/**").hasAnyRole("AUTHOR", "ADMIN")
-                        .requestMatchers("PUT", "/api/articles/**").hasAnyRole("AUTHOR", "ADMIN")
-                        .requestMatchers("DELETE", "/api/articles/**").hasAnyRole("AUTHOR", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/articles/**").hasAnyRole("AUTHOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/articles/**").hasAnyRole("AUTHOR", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/articles/**").hasAnyRole("AUTHOR", "ADMIN")
                         // Tout le reste nécessite d'être authentifié
                         .anyRequest().authenticated()
                 )
