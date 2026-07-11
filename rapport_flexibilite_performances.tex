@@ -1,0 +1,130 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+
+\definecolor{primaryblue}{RGB}{46,82,102}
+\definecolor{codebg}{RGB}{242,242,242}
+
+\titleformat{\section}{\Large\bfseries\color{primaryblue}}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\large\bfseries\color{primaryblue}}{\thesubsection}{0.5em}{}
+
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=none,
+  xleftmargin=0.5em,
+  xrightmargin=0.5em,
+  aboveskip=8pt,
+  belowskip=8pt
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{gray}Projet 7 --- CMS pour blog personnel avec MongoDB}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\hypersetup{colorlinks=true, linkcolor=primaryblue, urlcolor=primaryblue}
+
+\title{\color{primaryblue}\textbf{Rapport sur la flexibilité et les performances}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\section{Introduction}
+Ce rapport documente les choix de modélisation, d'indexation et d'agrégation retenus pour le backend du CMS de blog personnel, développé avec Spring Boot, MongoDB et MinIO. L'objectif est d'expliquer pourquoi ces choix favorisent à la fois la flexibilité du modèle de données (propre aux bases documentaires) et les performances des opérations de lecture et d'écriture les plus fréquentes de l'application.
+
+\section{Choix de modélisation : référencement vs embarquement}
+MongoDB permet deux stratégies pour représenter une relation entre deux entités : embarquer un document à l'intérieur d'un autre (dénormalisation), ou le référencer par identifiant dans une collection séparée (normalisation). Le projet combine les deux approches selon la nature de chaque relation.
+
+\subsection{Commentaires : référencement (collection séparée)}
+Les commentaires auraient pu être embarqués directement dans le document \texttt{Article}, sous forme de tableau. Ce choix a été écarté au profit d'une collection \texttt{Comment} séparée, référençant l'article via un champ \texttt{articleId}, pour les raisons suivantes~:
+
+\begin{itemize}[leftmargin=1.2em]
+  \item \textbf{Limite de taille des documents} : MongoDB impose une limite de 16~Mo par document. Un article très commenté pourrait s'en approcher si les commentaires étaient embarqués, ce qui est un risque non négligeable sur un blog destiné à rester en production durablement.
+  \item \textbf{Coût des lectures} : charger un article (par exemple pour l'aperçu dans la liste des articles) n'a pas besoin de charger l'intégralité de ses commentaires. Avec l'embarquement, chaque lecture d'article transporterait aussi tous ses commentaires, même quand ils ne sont pas affichés.
+  \item \textbf{Pagination} : afficher les commentaires par page (ex. 20 à la fois) est trivial avec \texttt{find().skip().limit()} sur une collection dédiée, alors qu'un tableau embarqué imposerait une extraction manuelle côté application.
+  \item \textbf{Écritures concurrentes} : ajouter un commentaire ne modifie que la collection \texttt{Comment} ; le document \texttt{Article} n'est jamais réécrit pour cette opération, ce qui réduit la contention sur un document potentiellement très consulté.
+\end{itemize}
+
+Le compromis accepté est un coût de lecture légèrement supérieur (deux requêtes au lieu d'une pour afficher un article avec ses commentaires), largement compensé par la flexibilité et la scalabilité obtenues.
+
+\begin{longtable}{p{2.6cm}p{5cm}p{5cm}}
+\toprule
+\textbf{Critère} & \textbf{Référencement (Comments, Articles→User)} & \textbf{Embarquement (rejeté ici)} \\
+\midrule
+\endhead
+Taille du document & Chaque collection reste légère et bornée & Un article très commenté peut approcher la limite de 16~Mo par document \\
+Lecture d'un article seul & Rapide : le document \texttt{Article} ne charge pas les commentaires & Chaque lecture d'article charge aussi tous ses commentaires, même non affichés \\
+Pagination des commentaires & Simple avec \texttt{find} + \texttt{skip}/\texttt{limit} sur la collection \texttt{Comment} & Nécessite une extraction manuelle depuis un tableau embarqué \\
+Écritures concurrentes & Un nouveau commentaire n'impacte pas le document \texttt{Article} & Chaque nouveau commentaire réécrit tout le document \texttt{Article} \\
+Indexation ciblée & Index dédié sur \texttt{Comment.articleId} & Impossible d'indexer efficacement un tableau imbriqué de la même façon \\
+\bottomrule
+\end{longtable}
+
+\subsection{Articles vers Auteur : référencement}
+La relation entre un article et son auteur (\texttt{User}) est également gérée par référencement (\texttt{Article.authorId}), et non par embarquement des informations de l'auteur dans chaque article. Un utilisateur pouvant rédiger de nombreux articles, dupliquer ses informations (nom, email, rôle) dans chaque document \texttt{Article} introduirait une redondance coûteuse à maintenir : toute modification du profil (ex. changement de nom) nécessiterait de mettre à jour tous les articles concernés. Le référencement garantit une source unique de vérité pour les données utilisateur.
+
+\subsection{Images : référencement via URL (ni embarquement, ni GridFS)}
+Les images associées aux articles ne sont stockées ni en binaire embarqué dans le document MongoDB, ni via GridFS. Elles sont hébergées sur MinIO (compatible S3), et seule l'URL de chaque image est stockée dans le champ \texttt{Article.images}. Ce choix découle directement de la limite des 16~Mo par document et des bonnes pratiques de séparation entre stockage de fichiers et stockage de données structurées : MongoDB reste rapide pour interroger les métadonnées des articles, tandis que MinIO est optimisé pour la distribution de fichiers binaires.
+
+\section{Pipelines d'agrégation pour les statistiques}
+L'objectif du projet demandait l'implémentation de pipelines d'agrégation pour produire des statistiques (articles par mois, tags populaires). Ces pipelines sont exécutés via \texttt{MongoTemplate.aggregate()}, en écrivant chaque étape sous forme de \texttt{Document} MongoDB natif plutôt que via l'API fluide de Spring Data, afin de garder une correspondance directe et lisible avec la syntaxe d'agrégation MongoDB standard.
+
+\subsection{Articles publiés par mois}
+Ce pipeline répond à l'objectif « articles par mois » du cahier des charges. Il se décompose en trois étapes~:
+
+\begin{lstlisting}
+$project  -> extrait "YYYY-MM" depuis Article.createdAt via $dateToString
+$group    -> regroupe les documents par mois et compte les occurrences ($sum: 1)
+$sort     -> trie les resultats par ordre chronologique croissant
+\end{lstlisting}
+
+L'étape \texttt{\$project} transforme un champ de type date en une clé de regroupement textuelle exploitable par \texttt{\$group}. Sans cette transformation, chaque document aurait un \texttt{createdAt} unique à la milliseconde près, rendant tout regroupement par mois impossible directement sur le champ brut.
+
+\subsection{Tags les plus populaires}
+Ce pipeline répond à l'objectif « tags populaires ». Le champ \texttt{Article.tags} étant un tableau, l'agrégation utilise l'opérateur \texttt{\$unwind} pour « déplier » chaque tag en un document temporaire distinct avant de pouvoir les regrouper individuellement~:
+
+\begin{lstlisting}
+$unwind -> un article possedant 3 tags genere 3 documents temporaires, un par tag
+$group  -> compte les occurrences de chaque tag distinct
+$sort   -> trie par nombre d'occurrences decroissant
+$limit  -> conserve les 10 tags les plus frequents
+\end{lstlisting}
+
+Cette approche exploite une caractéristique clé des bases documentaires : la capacité à interroger et transformer des structures imbriquées (tableaux) directement dans le moteur de la base, sans traitement applicatif préalable côté serveur Java.
+
+\section{Gestion des index}
+Les index ont été positionnés sur les champs correspondant aux requêtes les plus fréquentes de l'application, conformément à l'objectif « utiliser des index pour accélérer les recherches par tag ou auteur » du cahier des charges. Sans index, MongoDB effectue un balayage complet de la collection (\emph{collection scan}) pour chaque requête, dont le coût augmente linéairement avec le volume de données.
+
+\begin{longtable}{p{3cm}p{3cm}p{7cm}}
+\toprule
+\textbf{Collection / champ} & \textbf{Type d'index} & \textbf{Justification} \\
+\midrule
+\endhead
+\texttt{User.email} & Unique & Empêche deux comptes avec le même email ; accélère \texttt{findByEmail()} utilisé à chaque login \\
+\texttt{Article.authorId} & Simple & Accélère \texttt{findByAuthorId()} : lister les articles d'un auteur, utilisé pour le tableau de bord \texttt{AUTHOR} \\
+\texttt{Article.tags} & Multikey (automatique sur tableau) & Accélère \texttt{findByTagsContaining()} : recherche par tag depuis la page publique du blog \\
+\texttt{Comment.articleId} & Simple & Accélère \texttt{findByArticleId()} : chargement des commentaires d'un article, requête la plus fréquente sur cette collection \\
+\bottomrule
+\end{longtable}
+
+Le champ \texttt{Article.tags} étant un tableau, l'index créé dessus est automatiquement un index multikey : MongoDB indexe chaque élément du tableau individuellement, ce qui permet à \texttt{findByTagsContaining()} de retrouver rapidement tous les articles associés à un tag donné, sans balayage de collection.
+
+\section{Conclusion}
+Les choix de modélisation présentés dans ce rapport illustrent la flexibilité propre aux bases de données documentaires : la possibilité de choisir, relation par relation, entre embarquement et référencement selon les contraintes de taille, de fréquence d'accès et de cohérence des données. Les pipelines d'agrégation démontrent la capacité de MongoDB à produire des statistiques directement au niveau de la base, sans traitement intermédiaire coûteux côté application. Enfin, l'indexation ciblée des champs les plus sollicités garantit que ces choix de flexibilité ne se font pas au détriment des performances, les deux objectifs du projet étant ainsi conciliés.
+
+\end{document}
