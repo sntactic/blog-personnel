@@ -41,8 +41,8 @@ public class SecurityConfig {
                         // Lecture publique des articles et commentaires
                         .requestMatchers(HttpMethod.GET, "/api/articles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
-                        // Ajout de commentaire ouvert à tout visiteur, même non connecté
-                        .requestMatchers(HttpMethod.POST, "/api/comments/**").hasAnyRole("AUTHOR", "ADMIN", "READER")
+                        // Ajout de commentaire ouvert à tout utilisateur connecté (n'importe quel rôle)
+                        .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
                         // Gestion des utilisateurs réservée à l'admin
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         // Statistiques réservées à l'admin
