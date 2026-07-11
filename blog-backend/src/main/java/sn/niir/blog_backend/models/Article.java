@@ -28,14 +28,14 @@ public class Article {
     private String content;
 
     @Indexed
-    private String authorId; // référence vers User
+    private String authorId;
 
     @Indexed
     private List<String> tags;
 
-    private List<String> images; // URLs MinIO
+    private List<String> images;
 
-    private ArticleStatus status; // DRAFT, PUBLISHED
+    private ArticleStatus status;
 
     private int views;
 

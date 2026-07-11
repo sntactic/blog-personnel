@@ -26,7 +26,7 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
-    private String password; // hashé (BCrypt)
+    private String password;
 
     private String fullName;
 

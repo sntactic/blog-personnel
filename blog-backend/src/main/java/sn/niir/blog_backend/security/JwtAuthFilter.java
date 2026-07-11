@@ -52,6 +52,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             // Rend l'ID utilisateur accessible dans les controllers via request.getAttribute("userId")
             request.setAttribute("userId", userId);
+            request.setAttribute("role", role);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }

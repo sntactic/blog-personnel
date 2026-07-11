@@ -23,9 +23,9 @@ public class Comment {
     private String id;
 
     @Indexed
-    private String articleId; // référence vers Article
+    private String articleId;
 
-    private String authorName; // ou authorId si commentaire réservé aux connectés
+    private String authorName;
 
     private String content;
 
