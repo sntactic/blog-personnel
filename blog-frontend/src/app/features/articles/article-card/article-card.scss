@@ -1,0 +1,33 @@
+.article-card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  border-color: var(--brown-200);
+
+  &:hover {
+    box-shadow: 0 6px 18px rgba(84, 58, 41, 0.12);
+    transform: translateY(-2px);
+  }
+}
+
+.card-img-top {
+  height: 180px;
+  object-fit: cover;
+}
+
+.placeholder-img {
+  height: 180px;
+  background-color: var(--brown-100);
+}
+
+.tag-badge {
+  background-color: var(--brown-200);
+  color: var(--brown-800);
+  font-weight: 500;
+}
+
+.text-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--brown-700);
+}

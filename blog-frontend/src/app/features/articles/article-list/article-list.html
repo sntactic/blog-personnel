@@ -1,0 +1,23 @@
+<div class="container py-4">
+  <h1 class="mb-4">Le blog</h1>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  } @else if (articles().length === 0) {
+    <p class="text-muted">Aucun article publié pour le moment.</p>
+  } @else {
+    <div class="row g-4">
+      @for (article of articles(); track article.id) {
+        <div class="col-12 col-md-6 col-lg-4">
+          <app-article-card [article]="article" />
+        </div>
+      }
+    </div>
+  }
+</div>
