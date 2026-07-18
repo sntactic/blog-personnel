@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.card {
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px rgba(84, 58, 41, 0.08);
+}
+
+h1 {
+  color: var(--brown-800);
+}
+
+.form-label {
+  color: var(--brown-800);
+}
+
+.form-control {
+  border-color: var(--brown-200);
+
+  &:focus {
+    border-color: var(--brown-400);
+    box-shadow: 0 0 0 0.25rem rgba(169, 120, 83, 0.25); // brown-500 en alpha
+  }
+}
+
+.btn-primary {
+  background-color: var(--brown-500);
+  border-color: var(--brown-500);
+
+  &:hover,
+  &:focus {
+    background-color: var(--brown-600);
+    border-color: var(--brown-600);
+  }
+
+  &:active {
+    background-color: var(--brown-700) !important;
+    border-color: var(--brown-700) !important;
+  }
+
+  &:disabled {
+    background-color: var(--brown-300);
+    border-color: var(--brown-300);
+  }
+}
+
+a {
+  color: var(--brown-600);
+
+  &:hover {
+    color: var(--brown-800);
+  }
+}

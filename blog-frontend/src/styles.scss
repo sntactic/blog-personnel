@@ -1,1 +1,71 @@
 /* You can add global styles to this file, and also import other style files */
+// ============================================================
+// Thème marron clair — surcharge des variables Bootstrap
+// ============================================================
+
+// Palette marron clair
+$brown-50:  #FAF6F2;
+$brown-100: #F0E4D8;
+$brown-200: #E3CBB4;
+$brown-300: #D3AC88;
+$brown-400: #C0916A;
+$brown-500: #A97853; // couleur principale
+$brown-600: #8C6144;
+$brown-700: #6F4C36;
+$brown-800: #543A29;
+$brown-900: #3A281C;
+
+// Import de Bootstrap avec configuration (remplace les variables !default)
+@use 'bootstrap/scss/bootstrap' with (
+  $primary:   $brown-500,
+  $secondary: $brown-300,
+  $light:     $brown-50,
+  $dark:      $brown-800,
+
+  $body-bg:    $brown-50,
+  $body-color: $brown-900,
+
+  $card-border-color: $brown-200,
+  $border-color:      $brown-200,
+  $link-color:         $brown-600,
+  $link-hover-color:   $brown-800,
+
+  $font-family-sans-serif: ('Segoe UI', system-ui, -apple-system, sans-serif),
+
+  $border-radius:      0.5rem,
+  $border-radius-lg:   0.65rem,
+  $border-radius-sm:   0.4rem
+);
+
+// ============================================================
+// Ajustements globaux additionnels
+// ============================================================
+body {
+  background-color: $brown-50;
+}
+
+.navbar {
+  background-color: $brown-600 !important;
+}
+
+.card {
+  border-color: $brown-200;
+}
+
+.btn-primary {
+  color: #fff;
+}
+
+// Variables CSS exposées pour un usage ponctuel hors Bootstrap (ex: SVG, styles inline)
+:root {
+  --brown-50: #{$brown-50};
+  --brown-100: #{$brown-100};
+  --brown-200: #{$brown-200};
+  --brown-300: #{$brown-300};
+  --brown-400: #{$brown-400};
+  --brown-500: #{$brown-500};
+  --brown-600: #{$brown-600};
+  --brown-700: #{$brown-700};
+  --brown-800: #{$brown-800};
+  --brown-900: #{$brown-900};
+}
