@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/Environment';
 import { CommentRequest } from '../../shared/models/Comment';
+import { Comment } from '../../shared/models/Comment';
 
 @Injectable({ providedIn: 'root' })
 export class CommentService {

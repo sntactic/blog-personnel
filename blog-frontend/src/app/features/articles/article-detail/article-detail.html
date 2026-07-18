@@ -1,0 +1,65 @@
+<div class="container py-4" style="max-width: 800px;">
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+    <a routerLink="/articles" class="btn btn-outline-secondary btn-sm">Retour aux articles</a>
+  } @else if (article(); as art) {
+    <a routerLink="/articles" class="btn btn-link ps-0 mb-3">&larr; Retour aux articles</a>
+
+    @if (art.images.length > 0) {
+      <img [src]="art.images[0]" [alt]="art.title" class="img-fluid rounded mb-4 main-image" />
+    }
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+      <h1 class="h2 mb-0">{{ art.title }}</h1>
+
+      @if (canManage()) {
+        <div class="d-flex gap-2">
+          <a [routerLink]="['/articles', art.id, 'edit']" class="btn btn-outline-primary btn-sm">
+            Modifier
+          </a>
+          <button
+            type="button"
+            class="btn btn-outline-danger btn-sm"
+            (click)="deleteArticle()"
+            [disabled]="deleting()"
+          >
+            Supprimer
+          </button>
+        </div>
+      }
+    </div>
+
+    <p class="text-muted mb-3">
+      Par {{ art.authorName }} · {{ art.createdAt | date: 'dd MMMM y' }} · {{ art.views }} vues
+    </p>
+
+    <div class="mb-3">
+      @for (tag of art.tags; track tag) {
+        <span class="badge tag-badge me-1">{{ tag }}</span>
+      }
+    </div>
+
+    <div class="article-content">
+      {{ art.content }}
+    </div>
+
+    @if (art.images.length > 1) {
+      <div class="row g-2 mt-4">
+        @for (image of art.images.slice(1); track image) {
+          <div class="col-4">
+            <img [src]="image" class="img-fluid rounded" alt="" />
+          </div>
+        }
+      </div>
+    }
+
+    <app-comment-section [articleId]="art.id" />
+  }
+</div>
