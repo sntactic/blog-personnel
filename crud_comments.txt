@@ -1,0 +1,51 @@
+use blogdb
+
+
+// CREATE
+
+// Ajout d'un commentaire (CommentService.addComment)
+// authorName est un champ texte libre, dénormalisé (pas de référence vers users)
+db.comments.insertOne({
+  articleId: "6a524a7b1e987ba0b1f5fe42",
+  authorName: "Visiteur",
+  content: "Super article, merci pour le partage !",
+  createdAt: new Date()
+})
+
+
+// READ
+
+// Commentaires d'un article (CommentRepository.findByArticleId)
+// Requête la plus fréquente sur cette collection, indexée sur articleId
+db.comments.find({ articleId: "6a524a7b1e987ba0b1f5fe42" })
+
+// Tri chronologique des commentaires d'un article
+db.comments.find({ articleId: "6a524a7b1e987ba0b1f5fe42" }).sort({ createdAt: 1 })
+
+// Lecture d'un commentaire par son id
+db.comments.findOne({ _id: ObjectId("6a52501e1e987ba0b1f5fe45") })
+
+
+// UPDATE
+
+// Aucune opération de modification de commentaire n'est exposée par l'API
+// (un commentaire publié n'est pas éditable, seulement modérable/supprimable)
+
+
+// DELETE
+
+// Modération d'un commentaire par un ADMIN (CommentService.deleteComment)
+db.comments.deleteOne({ _id: ObjectId("6a52501e1e987ba0b1f5fe45") })
+
+// Suppression en cascade des commentaires d'un article
+// (CommentRepository.deleteByArticleId — à déclencher si un article est supprimé)
+db.comments.deleteMany({ articleId: "6a524a7b1e987ba0b1f5fe42" })
+
+
+// INDEX associé à cette collection
+
+// Index simple sur articleId (chargement des commentaires d'un article)
+db.comments.createIndex({ articleId: 1 })
+
+// Vérification des index existants
+db.comments.getIndexes()

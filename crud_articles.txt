@@ -1,0 +1,111 @@
+use blogdb
+
+
+// CREATE
+
+// Création d'un article (ArticleService.createArticle)
+// authorName est dénormalisé depuis users au moment de la création
+db.articles.insertOne({
+  title: "Mon premier article",
+  content: "Contenu de test sur MongoDB et Spring Boot.",
+  authorId: "6a5248391e987ba0b1f5fe41",
+  authorName: "Test Author",
+  tags: ["mongodb", "spring", "backend"],
+  images: [
+    "http://localhost:9000/blog-images/articles/3f2a-photo.jpg"
+  ],
+  status: "PUBLISHED",
+  views: 0,
+  createdAt: new Date(),
+  updatedAt: new Date()
+})
+
+
+// READ
+
+// Lecture d'un article par son id (ArticleRepository.findById)
+db.articles.findOne({ _id: ObjectId("6a524a7b1e987ba0b1f5fe42") })
+
+// Liste des articles publiés uniquement (ArticleRepository.findByStatus)
+// Utilisée par la page publique du blog
+db.articles.find({ status: "PUBLISHED" })
+
+// Articles d'un auteur, publiés uniquement (ArticleService.getArticlesByAuthor)
+// Endpoint public : les brouillons ne sont jamais exposés
+db.articles.find({
+  authorId: "6a5248391e987ba0b1f5fe41",
+  status: "PUBLISHED"
+})
+
+// Tous les articles d'un auteur, brouillons inclus (ArticleService.getMyArticles)
+// Endpoint protégé : authorId provient du token JWT, jamais d'un paramètre d'URL
+db.articles.find({ authorId: "6a5248391e987ba0b1f5fe41" })
+
+// Recherche par tag, publiés uniquement (ArticleService.getArticlesByTag)
+// S'appuie sur l'index multikey créé automatiquement sur "tags"
+db.articles.find({
+  tags: "mongodb",
+  status: "PUBLISHED"
+})
+
+// Recherche full-text dans title/content, triée par pertinence
+// (ArticleService.searchArticles) — s'appuie sur l'index texte composé
+db.articles.find(
+  { $text: { $search: "mongodb spring" }, status: "PUBLISHED" },
+  { score: { $meta: "textScore" } }
+).sort({ score: { $meta: "textScore" } })
+
+
+// UPDATE
+
+// Modification d'un article (ArticleService.updateArticle)
+// La liste finale d'images est reconstruite côté application
+// (images conservées + nouvelles uploadées), puis remplacée en un $set
+db.articles.updateOne(
+  { _id: ObjectId("6a524a7b1e987ba0b1f5fe42") },
+  {
+    $set: {
+      title: "Titre modifié",
+      content: "Contenu de test sur MongoDB et Spring Boot.",
+      tags: ["mongodb", "spring"],
+      images: [
+        "http://localhost:9000/blog-images/articles/3f2a-photo.jpg"
+      ],
+      status: "PUBLISHED",
+      updatedAt: new Date()
+    }
+  }
+)
+
+// Incrément du compteur de vues (non exposé par un endpoint dédié actuellement,
+// mais correspond au champ "views" du modèle)
+db.articles.updateOne(
+  { _id: ObjectId("6a524a7b1e987ba0b1f5fe42") },
+  { $inc: { views: 1 } }
+)
+
+
+// DELETE
+
+// Suppression d'un article (ArticleService.deleteArticle)
+// Les images MinIO associées sont supprimées côté application AVANT cet appel
+db.articles.deleteOne({ _id: ObjectId("6a524a7b1e987ba0b1f5fe42") })
+
+
+// INDEX associés à cette collection
+
+// Index simple sur l'auteur (recherche/tri par auteur)
+db.articles.createIndex({ authorId: 1 })
+
+// Index multikey sur les tags (automatique dès qu'un champ est un tableau)
+db.articles.createIndex({ tags: 1 })
+
+// Index texte composé sur title (poids 3) et content (poids 1)
+// Un seul index texte autorisé par collection
+db.articles.createIndex(
+  { title: "text", content: "text" },
+  { weights: { title: 3, content: 1 }, name: "title_text_content_text" }
+)
+
+// Vérification des index existants
+db.articles.getIndexes()

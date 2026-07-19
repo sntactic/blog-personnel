@@ -17,9 +17,6 @@ public class StatsService {
 
     private final MongoTemplate mongoTemplate;
 
-    /**
-     * Nombre d'articles publiés par mois (format "YYYY-MM"), triés chronologiquement.
-     */
     public List<MonthlyArticleCount> getArticlesPerMonth() {
         Aggregation aggregation = Aggregation.newAggregation(
                 context -> new Document("$project", new Document("month",
@@ -35,9 +32,7 @@ public class StatsService {
                 .toList();
     }
 
-    /**
-     * Les 10 tags les plus utilisés, triés du plus au moins fréquent.
-     */
+
     public List<TagCount> getPopularTags() {
         Aggregation aggregation = Aggregation.newAggregation(
                 context -> new Document("$unwind", "$tags"),

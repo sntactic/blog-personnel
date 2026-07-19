@@ -22,9 +22,7 @@ public class MinioService {
     @Value("${minio.endpoint}")
     private String endpoint;
 
-    /**
-     * Upload une image vers MinIO et retourne son URL publique.
-     */
+
     public String uploadImage(MultipartFile file) {
         String key = "articles/" + UUID.randomUUID() + "-" + sanitizeFilename(file.getOriginalFilename());
 
@@ -44,9 +42,7 @@ public class MinioService {
         return endpoint + "/" + bucket + "/" + key;
     }
 
-    /**
-     * Supprime une image à partir de son URL complète.
-     */
+
     public void deleteImage(String imageUrl) {
         String key = extractKeyFromUrl(imageUrl);
 

@@ -60,24 +60,12 @@ public class ArticleService {
                 .toList();
     }
 
-    /**
-     * Endpoint protégé (authentification requise) : renvoie TOUS les articles
-     * de l'auteur connecté, y compris ses brouillons (DRAFT). Contrairement à
-     * getArticlesByAuthor (public), ici l'appelant est nécessairement le
-     * propriétaire des articles retournés (authorId vient du token JWT, pas
-     * d'un paramètre d'URL arbitraire), donc aucun risque d'exposition.
-     */
     public List<ArticleResponse> getMyArticles(String authorId) {
         return articleRepository.findByAuthorId(authorId).stream()
                 .map(ArticleResponse::fromEntity)
                 .toList();
     }
 
-    /**
-     * Endpoint public (pas d'authentification requise) : ne renvoie que les articles
-     * PUBLISHED de l'auteur, jamais ses brouillons (DRAFT), pour éviter d'exposer
-     * du contenu non publié à n'importe quel visiteur.
-     */
     public List<ArticleResponse> getArticlesByAuthor(String authorId) {
         return articleRepository.findByAuthorId(authorId).stream()
                 .filter(article -> article.getStatus() == Article.ArticleStatus.PUBLISHED)
@@ -85,9 +73,7 @@ public class ArticleService {
                 .toList();
     }
 
-    /**
-     * Endpoint public : ne renvoie que les articles PUBLISHED portant ce tag.
-     */
+
     public List<ArticleResponse> getArticlesByTag(String tag) {
         return articleRepository.findByTagsContaining(tag).stream()
                 .filter(article -> article.getStatus() == Article.ArticleStatus.PUBLISHED)
@@ -95,11 +81,7 @@ public class ArticleService {
                 .toList();
     }
 
-    /**
-     * Endpoint public : recherche full-text dans le titre et le contenu des articles,
-     * via l'index texte MongoDB déclaré sur Article (title, content). Ne retourne que
-     * les articles PUBLISHED, triés par pertinence (score textuel décroissant).
-     */
+
     public List<ArticleResponse> searchArticles(String query) {
         TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(query);
 

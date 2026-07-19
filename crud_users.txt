@@ -1,0 +1,56 @@
+use blogdb
+
+
+// CREATE
+// Inscription d'un utilisateur (AuthService.register)
+// Le mot de passe est hashé côté application (BCrypt) avant l'insertion
+db.users.insertOne({
+  fullName: "Test Author",
+  email: "author@test.com",
+  password: "$2a$10$N9qo8uLOickgx2ZMRZoMy.Ig...", // hash BCrypt, jamais en clair
+  role: "READER", // rôle par défaut à l'inscription
+  createdAt: new Date()
+})
+
+
+// READ
+
+// Recherche par email (UserRepository.findByEmail)
+// Utilisée au login et pour vérifier l'unicité à l'inscription
+db.users.findOne({ email: "author@test.com" })
+
+// Vérifier l'existence d'un email (UserRepository.existsByEmail)
+db.users.countDocuments({ email: "author@test.com" }, { limit: 1 })
+
+// Recherche par identifiant (UserRepository.findById)
+db.users.findOne({ _id: ObjectId("6a5248391e987ba0b1f5fe41") })
+
+// Liste de tous les utilisateurs (UserRepository.findAll, UserService.getAllUsers)
+db.users.find()
+
+// Liste triée par date d'inscription décroissante
+db.users.find().sort({ createdAt: -1 })
+
+
+// UPDATE
+
+// Changement de rôle par un ADMIN (UserService.updateRole)
+db.users.updateOne(
+  { _id: ObjectId("6a5248391e987ba0b1f5fe41") },
+  { $set: { role: "AUTHOR" } }
+)
+
+
+// DELETE
+
+// Suppression d'un compte utilisateur (UserService.deleteUser)
+db.users.deleteOne({ _id: ObjectId("6a5248391e987ba0b1f5fe41") })
+
+
+// INDEX associé à cette collection
+
+// Index unique sur l'email (empêche les doublons, accélère findByEmail)
+db.users.createIndex({ email: 1 }, { unique: true })
+
+// Vérification des index existants
+db.users.getIndexes()
