@@ -37,12 +37,22 @@
     </div>
 
     <p class="text-muted mb-3">
-      Par {{ art.authorName }} · {{ art.createdAt | date: 'dd MMMM y' }} · {{ art.views }} vues
+      Par
+      <a
+        [routerLink]="['/articles']"
+        [queryParams]="{ author: art.authorId, authorName: art.authorName }"
+        class="author-link"
+      >{{ art.authorName }}</a>
+      · {{ art.createdAt | date: 'dd MMMM y' }} · {{ art.views }} vues
     </p>
 
     <div class="mb-3">
       @for (tag of art.tags; track tag) {
-        <span class="badge tag-badge me-1">{{ tag }}</span>
+        <a
+          [routerLink]="['/articles']"
+          [queryParams]="{ tag: tag }"
+          class="badge tag-badge me-1 text-decoration-none"
+        >{{ tag }}</a>
       }
     </div>
 

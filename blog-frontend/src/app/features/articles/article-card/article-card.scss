@@ -31,3 +31,18 @@
   overflow: hidden;
   color: var(--brown-700);
 }
+
+.author-link {
+  color: var(--brown-700);
+  font-weight: 500;
+
+  &:hover {
+    color: var(--brown-900);
+  }
+}
+
+.draft-badge {
+  background-color: var(--brown-400);
+  color: #fff;
+  white-space: nowrap;
+}

@@ -56,4 +56,8 @@ export class ArticleService {
 
     return formData;
   }
+
+  getMyArticles(): Observable<Article[]> {
+    return this.http.get<Article[]>(`${this.baseUrl}/me`);
+  }
 }

@@ -1,5 +1,23 @@
 <div class="container py-4">
-  <h1 class="mb-4">blog geit</h1>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <h1 class="mb-0">Le blog</h1>
+  </div>
+
+  @if (myArticlesMode()) {
+    <div class="alert filter-banner mb-4">
+      Tous tes articles, y compris tes brouillons.
+    </div>
+  } @else if (activeTag()) {
+    <div class="alert filter-banner d-flex justify-content-between align-items-center mb-4">
+      <span>Articles avec le tag <strong>{{ activeTag() }}</strong></span>
+      <a routerLink="/articles" class="btn btn-sm btn-outline-secondary">Effacer le filtre</a>
+    </div>
+  } @else if (activeAuthorName()) {
+    <div class="alert filter-banner d-flex justify-content-between align-items-center mb-4">
+      <span>Articles de <strong>{{ activeAuthorName() }}</strong></span>
+      <a routerLink="/articles" class="btn btn-sm btn-outline-secondary">Effacer le filtre</a>
+    </div>
+  }
 
   @if (loading()) {
     <div class="text-center py-5">
@@ -10,7 +28,7 @@
   } @else if (error()) {
     <div class="alert alert-danger">{{ error() }}</div>
   } @else if (articles().length === 0) {
-    <p class="text-muted">Aucun article publié pour le moment.</p>
+    <p class="text-muted">Aucun article trouvé.</p>
   } @else {
     <div class="row g-4">
       @for (article of articles(); track article.id) {

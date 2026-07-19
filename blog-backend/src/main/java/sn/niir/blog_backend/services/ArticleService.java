@@ -55,14 +55,24 @@ public class ArticleService {
                 .toList();
     }
 
+    /**
+     * Endpoint public (pas d'authentification requise) : ne renvoie que les articles
+     * PUBLISHED de l'auteur, jamais ses brouillons (DRAFT), pour éviter d'exposer
+     * du contenu non publié à n'importe quel visiteur.
+     */
     public List<ArticleResponse> getArticlesByAuthor(String authorId) {
         return articleRepository.findByAuthorId(authorId).stream()
+                .filter(article -> article.getStatus() == Article.ArticleStatus.PUBLISHED)
                 .map(ArticleResponse::fromEntity)
                 .toList();
     }
 
+    /**
+     * Endpoint public : ne renvoie que les articles PUBLISHED portant ce tag.
+     */
     public List<ArticleResponse> getArticlesByTag(String tag) {
         return articleRepository.findByTagsContaining(tag).stream()
+                .filter(article -> article.getStatus() == Article.ArticleStatus.PUBLISHED)
                 .map(ArticleResponse::fromEntity)
                 .toList();
     }
