@@ -36,8 +36,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // inutile en stateless JWT
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Documentation Swagger accessible sans authentification
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         // Authentification ouverte à tous
                         .requestMatchers("/api/auth/**").permitAll()
+                        // "Mes articles" (brouillons inclus) : doit être déclarée AVANT la règle
+                        // générale GET /api/articles/** permitAll, sinon jamais atteinte —
+                        // Spring Security applique la première règle qui correspond.
+                        .requestMatchers(HttpMethod.GET, "/api/articles/my-articles").hasAnyRole("AUTHOR", "ADMIN")
                         // Lecture publique des articles et commentaires
                         .requestMatchers(HttpMethod.GET, "/api/articles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()

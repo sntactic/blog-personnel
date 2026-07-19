@@ -41,6 +41,12 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getPublishedArticles());
     }
 
+
+    @GetMapping("/my-articles")
+    public ResponseEntity<List<ArticleResponse>> getMyArticles(@RequestAttribute("userId") String userId) {
+        return ResponseEntity.ok(articleService.getMyArticles(userId));
+    }
+
     @GetMapping("/author/{authorId}")
     public ResponseEntity<List<ArticleResponse>> getByAuthor(@PathVariable String authorId) {
         return ResponseEntity.ok(articleService.getArticlesByAuthor(authorId));
@@ -55,12 +61,12 @@ public class ArticleController {
     public ResponseEntity<ArticleResponse> update(
             @PathVariable String id,
             @Valid @RequestPart("article") ArticleRequest request,
-            @RequestPart(value = "images", required = false) List<MultipartFile> newImages,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @RequestAttribute("userId") String userId,
             @RequestAttribute("role") String role
     ) {
         return ResponseEntity.ok(
-                articleService.updateArticle(id, request, newImages != null ? newImages : Collections.emptyList(), userId, role)
+                articleService.updateArticle(id, request, images != null ? images : Collections.emptyList(), userId, role)
         );
     }
 

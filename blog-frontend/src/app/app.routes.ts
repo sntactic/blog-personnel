@@ -20,6 +20,14 @@ export const routes: Routes = [
       import('./features/articles/article-list/article-list').then((m) => m.ArticleList),
   },
   {
+    // Doit être déclarée AVANT 'articles/:id', sinon Angular interprète "mine" comme un :id
+    path: 'articles/mine',
+    loadComponent: () =>
+      import('./features/articles/article-list/article-list').then((m) => m.ArticleList),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['AUTHOR', 'ADMIN'], mine: true },
+  },
+  {
     // Doit être déclarée AVANT 'articles/:id', sinon Angular interprète "new" comme un :id
     path: 'articles/new',
     loadComponent: () =>

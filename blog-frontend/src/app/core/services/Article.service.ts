@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Article, ArticleRequest } from '../../shared/models/Article';
 import { environment } from '../../environments/Environment';
+import { Article, ArticleRequest } from '../../shared/models/Article';
 
 @Injectable({ providedIn: 'root' })
 export class ArticleService {
@@ -19,6 +19,10 @@ export class ArticleService {
 
   getByAuthor(authorId: string): Observable<Article[]> {
     return this.http.get<Article[]>(`${this.baseUrl}/author/${authorId}`);
+  }
+
+  getMyArticles(): Observable<Article[]> {
+    return this.http.get<Article[]>(`${this.baseUrl}/my-articles`);
   }
 
   getByTag(tag: string): Observable<Article[]> {
@@ -38,15 +42,7 @@ export class ArticleService {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
-
-  /**
-   * Construit le multipart/form-data attendu par le backend :
-   * - partie "article" : le JSON (title, content, tags, status, existingImages)
-   * - partie "images" : les nouveaux fichiers sélectionnés (toujours "nouveaux" par nature)
-   *
-   * NE PAS fixer le header Content-Type manuellement : le navigateur le génère
-   * automatiquement avec le bon "boundary" pour le multipart.
-   */
+  
   private buildFormData(request: ArticleRequest, newFiles: File[]): FormData {
     const formData = new FormData();
 
@@ -55,9 +51,5 @@ export class ArticleService {
     newFiles.forEach((file) => formData.append('images', file));
 
     return formData;
-  }
-
-  getMyArticles(): Observable<Article[]> {
-    return this.http.get<Article[]>(`${this.baseUrl}/me`);
   }
 }
