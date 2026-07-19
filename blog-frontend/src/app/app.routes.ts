@@ -40,6 +40,20 @@ export const routes: Routes = [
       import('./features/articles/article-detail/article-detail').then((m) => m.ArticleDetail),
   },
 
+  {
+    path: 'admin/dashboard',
+    loadComponent: () => import('./features/admin/dashboard/dashboard').then((m) => m.Dashboard),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN'] },
+  },
+  {
+    path: 'admin/users',
+    loadComponent: () =>
+      import('./features/admin/user-management/user-management').then((m) => m.UserManagement),
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN'] },
+  },
+
   // Route "wildcard" : toute URL non reconnue redirige vers la liste d'articles
   { path: '**', redirectTo: 'articles' },
 ];

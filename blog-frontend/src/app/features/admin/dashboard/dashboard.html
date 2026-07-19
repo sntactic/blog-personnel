@@ -1,0 +1,67 @@
+<div class="container py-4">
+  <h1 class="h3 mb-4">Tableau de bord</h1>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  } @else {
+    <div class="row g-4">
+      <div class="col-12 col-lg-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="h5 card-title mb-3">Articles publiés par mois</h2>
+
+            @if (monthlyCounts().length === 0) {
+              <p class="text-muted mb-0">Aucune donnée disponible.</p>
+            } @else {
+              <div class="d-flex flex-column gap-2">
+                @for (item of monthlyCounts(); track item.month) {
+                  <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                      <span>{{ item.month }}</span>
+                      <span class="fw-semibold">{{ item.count }}</span>
+                    </div>
+                    <div class="stat-bar-track">
+                      <div class="stat-bar-fill" [style.width.%]="barWidth(item.count, maxMonthlyCount())"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="h5 card-title mb-3">Tags les plus populaires</h2>
+
+            @if (popularTags().length === 0) {
+              <p class="text-muted mb-0">Aucune donnée disponible.</p>
+            } @else {
+              <div class="d-flex flex-column gap-2">
+                @for (item of popularTags(); track item.tag) {
+                  <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                      <span>{{ item.tag }}</span>
+                      <span class="fw-semibold">{{ item.count }}</span>
+                    </div>
+                    <div class="stat-bar-track">
+                      <div class="stat-bar-fill" [style.width.%]="barWidth(item.count, maxTagCount())"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

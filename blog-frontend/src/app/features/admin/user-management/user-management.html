@@ -1,0 +1,66 @@
+<div class="container py-4">
+  <h1 class="h3 mb-4">Gestion des utilisateurs</h1>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+    </div>
+  } @else {
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Inscrit le</th>
+          <th class="text-end">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td>
+                {{ user.fullName }}
+                @if (isCurrentUser(user)) {
+                  <span class="badge you-badge ms-1">Vous</span>
+                }
+              </td>
+              <td>{{ user.email }}</td>
+              <td>
+                <select
+                  class="form-select form-select-sm"
+                  style="width: auto;"
+                  [value]="user.role"
+                  [disabled]="isCurrentUser(user) || updatingUserId() === user.id"
+                  (change)="changeRole(user, $any($event.target).value)"
+                >
+                  @for (role of roles; track role) {
+                    <option [value]="role">{{ role }}</option>
+                  }
+                </select>
+              </td>
+              <td>{{ user.createdAt | date: 'dd MMM y' }}</td>
+              <td class="text-end">
+                <button
+                  type="button"
+                  class="btn btn-outline-danger btn-sm"
+                  [disabled]="isCurrentUser(user)"
+                  (click)="deleteUser(user)"
+                >
+                  Supprimer
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
