@@ -25,6 +25,10 @@ export class ArticleService {
     return this.http.get<Article[]>(`${this.baseUrl}/my-articles`);
   }
 
+  search(query: string): Observable<Article[]> {
+    return this.http.get<Article[]>(`${this.baseUrl}/search`, { params: { q: query } });
+  }
+
   getByTag(tag: string): Observable<Article[]> {
     return this.http.get<Article[]>(`${this.baseUrl}/tag/${tag}`);
   }
@@ -42,7 +46,7 @@ export class ArticleService {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
-  
+
   private buildFormData(request: ArticleRequest, newFiles: File[]): FormData {
     const formData = new FormData();
 

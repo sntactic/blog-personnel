@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -23,8 +24,10 @@ public class Article {
     @Id
     private String id;
 
+    @TextIndexed(weight = 3) // poids plus élevé : une correspondance dans le titre compte plus que dans le contenu
     private String title;
 
+    @TextIndexed
     private String content;
 
     @Indexed

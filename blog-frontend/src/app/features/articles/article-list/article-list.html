@@ -1,11 +1,29 @@
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <h1 class="mb-0">Le blog</h1>
+
+    @if (!myArticlesMode()) {
+      <form class="d-flex search-form" (ngSubmit)="submitSearch()">
+        <input
+          type="search"
+          class="form-control"
+          placeholder="Rechercher un article..."
+          [(ngModel)]="searchInput"
+          name="search"
+        />
+        <button type="submit" class="btn btn-primary ms-2">Rechercher</button>
+      </form>
+    }
   </div>
 
   @if (myArticlesMode()) {
     <div class="alert filter-banner mb-4">
       Tous tes articles, y compris tes brouillons.
+    </div>
+  } @else if (activeQuery()) {
+    <div class="alert filter-banner d-flex justify-content-between align-items-center mb-4">
+      <span>Résultats pour <strong>« {{ activeQuery() }} »</strong></span>
+      <a routerLink="/articles" class="btn btn-sm btn-outline-secondary">Effacer la recherche</a>
     </div>
   } @else if (activeTag()) {
     <div class="alert filter-banner d-flex justify-content-between align-items-center mb-4">

@@ -1,6 +1,10 @@
 package sn.niir.blog_backend.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.TextCriteria;
+import org.springframework.data.mongodb.core.query.TextQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import sn.niir.blog_backend.dto.ArticleRequest;
@@ -23,6 +27,7 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
     private final UserRepository userRepository;
     private final MinioService minioService;
+    private final MongoTemplate mongoTemplate;
 
     public ArticleResponse createArticle(ArticleRequest request, List<MultipartFile> images, String authorId) {
         List<String> imageUrls = uploadImages(images);
@@ -55,13 +60,24 @@ public class ArticleService {
                 .toList();
     }
 
+    /**
+     * Endpoint protégé (authentification requise) : renvoie TOUS les articles
+     * de l'auteur connecté, y compris ses brouillons (DRAFT). Contrairement à
+     * getArticlesByAuthor (public), ici l'appelant est nécessairement le
+     * propriétaire des articles retournés (authorId vient du token JWT, pas
+     * d'un paramètre d'URL arbitraire), donc aucun risque d'exposition.
+     */
     public List<ArticleResponse> getMyArticles(String authorId) {
         return articleRepository.findByAuthorId(authorId).stream()
                 .map(ArticleResponse::fromEntity)
                 .toList();
     }
 
-
+    /**
+     * Endpoint public (pas d'authentification requise) : ne renvoie que les articles
+     * PUBLISHED de l'auteur, jamais ses brouillons (DRAFT), pour éviter d'exposer
+     * du contenu non publié à n'importe quel visiteur.
+     */
     public List<ArticleResponse> getArticlesByAuthor(String authorId) {
         return articleRepository.findByAuthorId(authorId).stream()
                 .filter(article -> article.getStatus() == Article.ArticleStatus.PUBLISHED)
@@ -69,10 +85,28 @@ public class ArticleService {
                 .toList();
     }
 
-
+    /**
+     * Endpoint public : ne renvoie que les articles PUBLISHED portant ce tag.
+     */
     public List<ArticleResponse> getArticlesByTag(String tag) {
         return articleRepository.findByTagsContaining(tag).stream()
                 .filter(article -> article.getStatus() == Article.ArticleStatus.PUBLISHED)
+                .map(ArticleResponse::fromEntity)
+                .toList();
+    }
+
+    /**
+     * Endpoint public : recherche full-text dans le titre et le contenu des articles,
+     * via l'index texte MongoDB déclaré sur Article (title, content). Ne retourne que
+     * les articles PUBLISHED, triés par pertinence (score textuel décroissant).
+     */
+    public List<ArticleResponse> searchArticles(String query) {
+        TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(query);
+
+        TextQuery mongoQuery = TextQuery.queryText(textCriteria).sortByScore();
+        mongoQuery.addCriteria(Criteria.where("status").is(Article.ArticleStatus.PUBLISHED));
+
+        return mongoTemplate.find(mongoQuery, Article.class).stream()
                 .map(ArticleResponse::fromEntity)
                 .toList();
     }

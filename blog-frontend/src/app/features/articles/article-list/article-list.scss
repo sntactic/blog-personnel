@@ -8,3 +8,18 @@ h1 {
   border-color: var(--brown-200);
   color: var(--brown-800);
 }
+
+.search-form {
+  max-width: 400px;
+  width: 100%;
+
+  input {
+    border-color: var(--brown-300);
+  }
+}
+
+@media (max-width: 576px) {
+  .search-form {
+    max-width: 100%;
+  }
+}

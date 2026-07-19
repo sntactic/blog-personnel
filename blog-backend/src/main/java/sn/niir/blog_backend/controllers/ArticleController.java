@@ -57,6 +57,11 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getArticlesByTag(tag));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<ArticleResponse>> search(@RequestParam("q") String query) {
+        return ResponseEntity.ok(articleService.searchArticles(query));
+    }
+
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ArticleResponse> update(
             @PathVariable String id,
