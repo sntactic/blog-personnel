@@ -1,0 +1,15 @@
+.navbar {
+  background-color: var(--brown-700);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.nav-link.active {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
