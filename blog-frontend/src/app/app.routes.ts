@@ -54,6 +54,14 @@ export const routes: Routes = [
     data: { roles: ['ADMIN'] },
   },
 
-  // Route "wildcard" : toute URL non reconnue redirige vers la liste d'articles
-  { path: '**', redirectTo: 'articles' },
+  {
+    path: 'forbidden',
+    loadComponent: () => import('./features/forbidden/forbidden').then((m) => m.Forbidden),
+  },
+
+  // Route "wildcard" : toute URL non reconnue affiche la page 404
+  {
+    path: '**',
+    loadComponent: () => import('./features/not-found/not-found').then((m) => m.NotFound),
+  },
 ];

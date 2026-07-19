@@ -22,6 +22,6 @@ export const roleGuard: CanActivateFn = (route) => {
     return true;
   }
 
-  router.navigate(['/']); // ou une page "403" dédiée
+  router.navigate(['/forbidden']);
   return false;
 };
