@@ -1,0 +1,115 @@
+<div class="container py-4" style="max-width: 700px;">
+  <h1 class="h3 mb-4">{{ isEditMode() ? 'Modifier l\'article' : 'Nouvel article' }}</h1>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+    </div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="alert alert-danger">{{ errorMessage() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="mb-3">
+        <label for="title" class="form-label">Titre</label>
+        <input
+          id="title"
+          type="text"
+          class="form-control"
+          formControlName="title"
+          [class.is-invalid]="form.get('title')?.invalid && form.get('title')?.touched"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="content" class="form-label">Contenu</label>
+        <textarea
+          id="content"
+          class="form-control"
+          rows="8"
+          formControlName="content"
+          [class.is-invalid]="form.get('content')?.invalid && form.get('content')?.touched"
+        ></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label for="tags" class="form-label">Tags (séparés par des virgules)</label>
+        <input
+          id="tags"
+          type="text"
+          class="form-control"
+          placeholder="mongodb, spring, backend"
+          formControlName="tags"
+          [class.is-invalid]="form.get('tags')?.invalid && form.get('tags')?.touched"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="status" class="form-label">Statut</label>
+        <select id="status" class="form-select" formControlName="status">
+          <option value="DRAFT">Brouillon</option>
+          <option value="PUBLISHED">Publié</option>
+        </select>
+      </div>
+
+      <!-- Images déjà enregistrées -->
+      @if (existingImages().length > 0) {
+        <div class="mb-3">
+          <label class="form-label">Images actuelles</label>
+          <div class="d-flex flex-wrap gap-2">
+            @for (url of existingImages(); track url) {
+              <div class="image-thumb">
+                <img [src]="url" alt="" />
+                <button
+                  type="button"
+                  class="btn-remove"
+                  (click)="removeExistingImage(url)"
+                  aria-label="Retirer cette image"
+                >×</button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Nouvelles images à uploader -->
+      <div class="mb-4">
+        <label for="images" class="form-label">Ajouter des images</label>
+        <input
+          id="images"
+          type="file"
+          class="form-control"
+          accept="image/*"
+          multiple
+          (change)="onFilesSelected($event)"
+        />
+
+        @if (newFiles().length > 0) {
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            @for (entry of newFiles(); track entry.previewUrl) {
+              <div class="image-thumb">
+                <img [src]="entry.previewUrl" alt="" />
+                <button
+                  type="button"
+                  class="btn-remove"
+                  (click)="removeNewFile(entry)"
+                  aria-label="Retirer cette image"
+                >×</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+        }
+        {{ isEditMode() ? 'Enregistrer les modifications' : 'Publier' }}
+      </button>
+    </form>
+  }
+</div>
