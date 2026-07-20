@@ -1,21 +1,21 @@
-server:
-  port: 8080
-
 spring:
   application:
     name: blog-backend
+
+  mongodb:
+    uri: mongodb://admin:admin123@localhost:27017/blogdb?authSource=admin
 
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
 
-  data:
-    mongodb:
-      uri: mongodb://admin:admin123@localhost:27017/blogdb?authSource=admin
+server:
+  port: 8080
 
 minio:
-  endpoint: http://localhost:9000
+  endpoint: http://localhost:9000        # utilisé par le backend pour parler à MinIO
+  public-endpoint: http://localhost:9000  # utilisé pour les URLs renvoyées au navigateur
   access-key: admin
   secret-key: motdepasse123
   bucket: blog-images

@@ -31,7 +31,6 @@ services:
     networks:
       - blog-network
 
-  # Optionnel : crée automatiquement le bucket au démarrage
   createbuckets:
     image: minio/mc:latest
     container_name: blog-minio-init
@@ -47,6 +46,42 @@ services:
       mc anonymous set download localminio/blog-images;
       exit 0;
       "
+
+  backend:
+    build:
+      context: ./blog-backend
+      dockerfile: Dockerfile
+    container_name: blog-backend-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_MONGODB_URI: mongodb://admin:admin123@mongodb:27017/blogdb?authSource=admin
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_PUBLIC_ENDPOINT: ""
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: motdepasse123
+      MINIO_BUCKET: blog-images
+      JWT_SECRET: cleSecreteTresLonguePourSignerLesTokensJWTMinimum256bits
+      JWT_EXPIRATION: 86400000
+    depends_on:
+      - mongodb
+      - minio
+    networks:
+      - blog-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: blog-frontend/Dockerfile
+    container_name: blog-frontend-app
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - blog-network
 
 volumes:
   mongodb_data:

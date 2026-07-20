@@ -19,9 +19,8 @@ public class MinioService {
     @Value("${minio.bucket}")
     private String bucket;
 
-    @Value("${minio.endpoint}")
-    private String endpoint;
-
+    @Value("${minio.public-endpoint}")
+    private String publicEndpoint;
 
     public String uploadImage(MultipartFile file) {
         String key = "articles/" + UUID.randomUUID() + "-" + sanitizeFilename(file.getOriginalFilename());
@@ -39,7 +38,7 @@ public class MinioService {
             throw new RuntimeException("Échec de l'upload de l'image : " + e.getMessage(), e);
         }
 
-        return endpoint + "/" + bucket + "/" + key;
+        return publicEndpoint + "/" + bucket + "/" + key;
     }
 
 
@@ -59,14 +58,20 @@ public class MinioService {
     }
 
     private String extractKeyFromUrl(String imageUrl) {
-        String prefix = endpoint + "/" + bucket + "/";
+        String prefix = publicEndpoint + "/" + bucket + "/";
         if (!imageUrl.startsWith(prefix)) {
             throw new IllegalArgumentException("URL d'image invalide : " + imageUrl);
         }
         return imageUrl.substring(prefix.length());
     }
 
-    private String sanitizeFilename(String filename) {
+    public String extractOriginalFilename(String imageUrl) {
+        String key = extractKeyFromUrl(imageUrl); // "articles/{uuid}-{filename}"
+        int prefixLength = "articles/".length() + 36 + 1; // "articles/" + uuid + "-"
+        return key.length() > prefixLength ? key.substring(prefixLength) : key;
+    }
+
+    public String sanitizeFilename(String filename) {
         if (filename == null) return "file";
         return filename.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
