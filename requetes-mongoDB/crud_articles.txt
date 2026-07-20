@@ -1,10 +1,11 @@
+// Collection : articles
+
 use blogdb
 
 
 // CREATE
 
 // Création d'un article (ArticleService.createArticle)
-// authorName est dénormalisé depuis users au moment de la création
 db.articles.insertOne({
   title: "Mon premier article",
   content: "Contenu de test sur MongoDB et Spring Boot.",
@@ -24,7 +25,7 @@ db.articles.insertOne({
 // READ
 
 // Lecture d'un article par son id (ArticleRepository.findById)
-db.articles.findOne({ _id: ObjectId("6a524a7b1e987ba0b1f5fe42") })
+db.articles.findOne({ _id: ObjectId("6a5d7b25059a4f89de301fd4") })
 
 // Liste des articles publiés uniquement (ArticleRepository.findByStatus)
 // Utilisée par la page publique du blog
@@ -33,7 +34,7 @@ db.articles.find({ status: "PUBLISHED" })
 // Articles d'un auteur, publiés uniquement (ArticleService.getArticlesByAuthor)
 // Endpoint public : les brouillons ne sont jamais exposés
 db.articles.find({
-  authorId: "6a5248391e987ba0b1f5fe41",
+  authorId: "6a5d79d1059a4f89de301fd2",
   status: "PUBLISHED"
 })
 
@@ -60,7 +61,6 @@ db.articles.find(
 
 // Modification d'un article (ArticleService.updateArticle)
 // La liste finale d'images est reconstruite côté application
-// (images conservées + nouvelles uploadées), puis remplacée en un $set
 db.articles.updateOne(
   { _id: ObjectId("6a524a7b1e987ba0b1f5fe42") },
   {

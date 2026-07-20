@@ -1,3 +1,5 @@
+// Pipelines d'agrégation MongoDB
+
 use blogdb
 
 
@@ -53,10 +55,11 @@ db.articles.aggregate([
 
 db.articles.find(
   {
-    $text: { $search: "mongodb spring" },
+    $text: { $search: "spring angular" },
     status: "PUBLISHED"
   },
   {
+    title: 1,
     score: { $meta: "textScore" }
   }
 ).sort({
