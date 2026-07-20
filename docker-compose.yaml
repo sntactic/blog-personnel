@@ -56,7 +56,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_MONGODB_URI: mongodb://admin:admin123@mongodb:27017/blogdb?authSource=admin
+      environment:
+      SPRING_DATA_MONGODB_URI: mongodb://admin:admin123@mongodb:27017/blogdb?authSource=admin
       MINIO_ENDPOINT: http://minio:9000
       MINIO_PUBLIC_ENDPOINT: ""
       MINIO_ACCESS_KEY: admin
